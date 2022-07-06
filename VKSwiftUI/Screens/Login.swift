@@ -8,11 +8,14 @@
 import SwiftUI
 import Combine
 
-struct ContentView: View {
+struct Login: View {
     
+    @Binding var isLoggedIn: Bool
     @State var login = ""
     @State var password = ""
     @State var shouldShowLogo = true
+    @State private var loginFailed = false
+    
     
     private let keyboardPublisher = Publishers.Merge(
         NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
@@ -20,6 +23,15 @@ struct ContentView: View {
         NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)
             .map { notification in false }
     ).eraseToAnyPublisher()
+    
+    private func verifyLoginData() {
+        if login == " " && password == " " {
+            isLoggedIn = true
+        } else {
+            loginFailed = true
+        }
+        password = ""
+    }
     
     var body: some View {
         
@@ -66,9 +78,10 @@ struct ContentView: View {
                     
                     HStack {
                         Button {
-                            print("Login Pressed")
+                            self.verifyLoginData()
                         } label: {
-                            Label("Log in", systemImage: "chevron.right.circle")
+                            Label("Log in ", systemImage: "chevron.right.circle")
+                                .foregroundColor(Color.white)
                         }
                         .foregroundColor(.white)
                         .buttonStyle(.borderedProminent)
@@ -108,7 +121,8 @@ struct ContentView: View {
         }
         .onTapGesture {
             UIApplication.shared.endEditing()
-        }
+        }.alert(isPresented: $loginFailed, content: { Alert(title: Text("Error"), message: Text("Incorrect login or password"))
+        })
         .onReceive(self.keyboardPublisher) { isKeyboardShow in
             withAnimation(.easeIn(duration: 0.5)) {
                 self.shouldShowLogo = !isKeyboardShow
@@ -123,11 +137,11 @@ extension UIApplication {
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            ContentView()
-                .previewInterfaceOrientation(.portrait)
-        }
-    }
-}
+//struct ContentView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        Group {
+//            Login()
+//                .previewInterfaceOrientation(.portrait)
+//        }
+//    }
+//}
